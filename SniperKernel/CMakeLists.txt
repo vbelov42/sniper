@@ -15,9 +15,41 @@ file(GLOB sources src/binding/*.cc)
 add_library(SniperPython SHARED ${sources})
 target_link_libraries(SniperPython SniperKernel)
 
+file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
+set(req_head "
+package SniperKernel
+
+macro SniperKernel_home \"${CMAKE_INSTALL_PREFIX}\"
+
+#include_path none
+include_dirs \"$(SniperKernel_home)/include\"
+
+macro SniperKernel_cppflags \"-std=c++11 -fPIC \"
+macro SniperKernel_linkopts \"-fPIC -ldl -Wl,--as-needed -Wl,--no-undefined \"
+
+#macro_append SniperKernel_linkopts \" -lboost_python \"
+macro_append SniperKernel_cppflags \" `pkg-config --cflags python` \"
+#macro_append SniperKernel_linkopts \" `pkg-config --libs python` \"
+
+path_prepend PYTHONPATH \"$(SniperKernel_home)/python:$(SniperKernel_home)/lib\"
+path_prepend LD_LIBRARY_PATH \"$(SniperKernel_home)/lib\"
+
+#
+# from SniperPolicy
+#
+")
+file(READ ${PROJECT_SOURCE_DIR}/SniperPolicy/cmt/requirements _rules)
+string(FIND "${_rules}" "pattern" _offset)
+string(SUBSTRING "${_rules}" "${_offset}" "-1" _rules)
+string(REPLACE "SniperPolicy_" "SniperKernel_" req_rules "${_rules}")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "${req_head}${req_rules}")
+unset(_rules)
+unset(_offset)
+
 # install
 install(TARGETS SniperKernel SniperPython DESTINATION lib)
 file(GLOB headers SniperKernel/*.h)
 install(FILES ${headers} DESTINATION include/SniperKernel)
 file(GLOB python python/Sniper/*.py)
 install(FILES ${python} DESTINATION python/Sniper)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cmt DESTINATION ${datadir}/SniperKernel)
