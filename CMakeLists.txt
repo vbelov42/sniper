@@ -143,7 +143,7 @@ set(datadir "share/sniper")
 
 #
 # build targets
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/project.cmt "project sniper\n\nuse ExternalInterface\n\nsetup_strategy no_root\nsetup_strategy no_config\nstructure_strategy without_version_directory\n")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/project.cmt "project sniper\n\nuse ExternalInterface\n\nbuild_strategy with_installarea\nsetup_strategy no_root\nsetup_strategy no_config\nstructure_strategy without_version_directory\n")
 file(COPY cmt/version.cmt DESTINATION cmt)
 set(subdirs SniperKernel SniperUtil SniperSvc Examples)
 set(modlist)

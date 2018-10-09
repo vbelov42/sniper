@@ -10,7 +10,7 @@ include_directories(${PROJECT_SOURCE_DIR}/SniperKernel)
 include_directories(${PROJECT_SOURCE_DIR}/SniperSvc/RootWriter)
 file(GLOB sources src/*.cc binding/RootWriterBinding.cc)
 add_library(RootWriter SHARED ${sources})
-set(ROOT_PyROOT_LIBRARY /usr/lib64/root/libPyROOT.so)
+set(ROOT_PyROOT_LIBRARY ${ROOT_LIBRARY_DIR}/libPyROOT.so)
 target_link_libraries(RootWriter SniperKernel ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} ${ROOT_Tree_LIBRARY} ${ROOT_PyROOT_LIBRARY} ${PYTHON_LIBRARY} boost_python)
 file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "
