@@ -19,27 +19,21 @@ file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
 set(req_head "
 package SniperKernel
 
-macro_remove    cppflags        \"-ansi -pedantic \"
-macro_prepend   cppflags        \"-std=c++11 -fPIC \"
-macro libraryshr_linkopts       \"-fPIC -ldl -Wl,--as-needed \"
-
-macro_append libraryshr_linkopts \"\" \\
-      Linux            \"-Wl,--no-undefined \"
-
 macro SniperKernel_home \"${CMAKE_INSTALL_PREFIX}\"
 macro SniperKernel_root \"$(SniperKernel_home)/share/sniper/SniperKernel\"
+
+macro_remove    cppflags        \"-ansi -pedantic \"
+macro_prepend   cppflags        \"-std=c++11 -fPIC \"
 
 include_path none
 include_dirs \"$(SniperKernel_home)/include\"
 include_dirs \"${Boost_INCLUDE_DIR}\"
 
 #macro SniperKernel_cppflags \"-std=c++11 -fPIC \"
-#macro SniperKernel_linkopts \"-fPIC -ldl -Wl,--as-needed -Wl,--no-undefined \"
-macro SniperKernel_linkopts \"-L$(SniperKernel_home)/lib -lSniperKernel \"
+macro SniperKernel_linkopts \"-fPIC -Wl,--as-needed -Wl,--no-undefined -L$(SniperKernel_home)/lib -lSniperKernel \"
 
-#macro_append SniperKernel_linkopts \" -lboost_python \"
-#macro_append SniperKernel_cppflags \" `pkg-config --cflags python` \"
-#macro_append SniperKernel_linkopts \" `pkg-config --libs python` \"
+macro_append SniperKernel_cppflags \" `pkg-config --cflags python` \"
+macro_append SniperKernel_linkopts \" `pkg-config --libs python` -lboost_python \"
 
 path_prepend PYTHONPATH \"$(SniperKernel_home)/python:$(SniperKernel_home)/lib\"
 path_prepend LD_LIBRARY_PATH \"$(SniperKernel_home)/lib\"
