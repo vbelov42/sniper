@@ -34,7 +34,7 @@ include_dirs \"${Boost_INCLUDE_DIR}\"
 include_dirs \"${PYTHON_INCLUDE_DIR}\"
 
 #macro SniperKernel_cppflags \"-std=c++11 -fPIC \"
-macro SniperKernel_linkopts \"-fPIC -Wl,--as-needed -Wl,--no-undefined $(SniperKernel_home)/lib/${_file} @Boost_PYTHON_LIBRARY@ @PYTHON_LIBRARY@ \"
+macro SniperKernel_linkopts \"-fPIC -Wl,--as-needed -Wl,--no-undefined $(SniperKernel_home)/lib/${_file} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} \"
 
 path_prepend PYTHONPATH \"$(SniperKernel_home)/python:$(SniperKernel_home)/lib\"
 path_prepend LD_LIBRARY_PATH \"$(SniperKernel_home)/lib\"
