@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8)
 include_directories(${PROJECT_SOURCE_DIR}/SniperKernel)
 file(GLOB sources src/*.cc)
 add_library(SniperKernel SHARED ${sources})
-target_link_libraries(SniperKernel dl ${PYTHON_LIBRARY} boost_python)
+target_link_libraries(SniperKernel dl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY})
 
 include_directories(${PROJECT_SOURCE_DIR}/SniperKernel/src)
 file(GLOB sources src/binding/*.cc)
