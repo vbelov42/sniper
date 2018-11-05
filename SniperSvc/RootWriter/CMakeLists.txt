@@ -11,11 +11,12 @@ include_directories(${PROJECT_SOURCE_DIR}/SniperSvc/RootWriter)
 file(GLOB sources src/*.cc binding/RootWriterBinding.cc)
 add_library(RootWriter SHARED ${sources})
 if(NOT ROOT_PyROOT_LIBRARY)
-  set(ROOT_PyROOT_LIBRARY ${ROOT_LIBRARY_DIR}/libPyROOT.so)
+  get_filename_component(dir ${ROOT_Core_LIBRARY} DIRECTORY)
+  find_library(ROOT_PyROOT_LIBRARY NAMES PyROOT PATHS ${dir} NO_DEFAULT_PATH)
 endif()
 # To be honest, we should check that both ROOT and Boost use the same python,
 # because otherwise it won't work.
-target_link_libraries(RootWriter SniperKernel ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} ${ROOT_Tree_LIBRARY} ${ROOT_PyROOT_LIBRARY} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY})
+target_link_libraries(RootWriter SniperKernel ${ROOT_Core_LIBRARY} ${ROOT_RIO_LIBRARY} ${ROOT_Tree_LIBRARY} ${ROOT_PyROOT_LIBRARY} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
 file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "
 package RootWriter
