@@ -18,8 +18,9 @@ target_link_libraries(SniperPython SniperKernel)
 get_target_property(_file SniperKernel LOCATION)
 get_filename_component(_file ${_file} NAME)
 set(SniperKernel_LIB_NAME ${_file} PARENT_SCOPE)
-file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "
+if(BUILD_CMT_PROJECT)
+  file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "
 package SniperKernel
 
 use SniperPolicy *
@@ -30,6 +31,7 @@ include_path none
 macro SniperKernel_linkopts \" -Wl,--as-needed -Wl,--no-undefined ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_file} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} \"
 
 ")
+endif()
 unset(_file)
 
 # install
@@ -39,4 +41,6 @@ install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SniperKernel)
 install(TARGETS SniperPython DESTINATION ${CMAKE_INSTALL_PYTHONDIR}/Sniper)
 install(DIRECTORY python/Sniper DESTINATION ${CMAKE_INSTALL_PYTHONDIR})
 install(FILES share/HelloTask.py DESTINATION ${CMAKE_INSTALL_DATADIR}/Examples RENAME run-HelloTask.py)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cmt DESTINATION ${CMAKE_INSTALL_CMTPROJECTDIR}/SniperKernel)
+if(BUILD_CMT_PROJECT)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cmt DESTINATION ${CMAKE_INSTALL_CMTPROJECTDIR}/SniperKernel)
+endif()
