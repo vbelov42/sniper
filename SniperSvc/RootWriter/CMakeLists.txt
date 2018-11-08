@@ -27,14 +27,13 @@ include_path none
 include_dirs \"${ROOT_INCLUDE_DIRS}\"
 
 macro_append RootWriter_cppflags \" -Wno-long-long \"
-macro_append RootWriter_linkopts \"${CMAKE_INSTALL_PREFIX}/lib/libRootWriter.so -L${ROOT_LIBRARY_DIR} -lTree -lCore \"
+macro_append RootWriter_linkopts \"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libRootWriter.so -L${ROOT_LIBRARY_DIR} -lTree -lCore \"
 ")
 
 # install
-install(TARGETS RootWriter DESTINATION lib)
-install(FILES RootWriter/RootWriter.h DESTINATION include/RootWriter)
-file(GLOB python python/RootWriter/*.py)
-install(FILES ${python} DESTINATION python/RootWriter)
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cmt DESTINATION ${datadir}/RootWriter)
+install(TARGETS RootWriter DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES RootWriter/RootWriter.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/RootWriter)
+install(DIRECTORY python/RootWriter DESTINATION ${CMAKE_INSTALL_PYTHONDIR})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cmt DESTINATION ${CMAKE_INSTALL_CMTPROJECTDIR}/SniperSvc/RootWriter)
 
 endif()
