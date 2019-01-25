@@ -15,9 +15,10 @@ file(GLOB sources src/binding/*.cc)
 add_library(SniperPython SHARED ${sources})
 target_link_libraries(SniperPython SniperKernel)
 
-get_target_property(_file SniperKernel LOCATION)
-get_filename_component(_file ${_file} NAME)
-set(SniperKernel_LIB_NAME ${_file} PARENT_SCOPE)
+set(file)
+get_target_property(file SniperKernel LOCATION)
+get_filename_component(file ${file} NAME)
+set(SniperKernel_LIB_NAME ${file} PARENT_SCOPE)
 if(BUILD_CMT_PROJECT)
   file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/cmt/requirements "
@@ -28,11 +29,11 @@ use SniperPolicy *
 include_path none
 
 #macro SniperKernel_cppflags \"-std=c++11 -fPIC \"
-macro SniperKernel_linkopts \" -Wl,--as-needed -Wl,--no-undefined ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_file} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} \"
+macro SniperKernel_linkopts \" -Wl,--as-needed -Wl,--no-undefined ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${file} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES} \"
 
 ")
 endif()
-unset(_file)
+unset(file)
 
 # install
 install(TARGETS SniperKernel DESTINATION ${CMAKE_INSTALL_LIBDIR})

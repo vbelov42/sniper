@@ -1,12 +1,60 @@
-#  CMT_FIND_PACKAGE(name [major[.minor[.patch[.tweak]]]] [EXACT]
+#
+# - Try to find the CMT build system (http://www.cmtsite.net/).
+#
+# The module defines the following variables:
+#   CMT_FOUND          - true if CMT was found
+#   CMT_EXECUTABLE     - path to command line tool
+#   CMT_VERSION_STRING - the version of CMT found
+#
+# Working CMT system can be used to find packages with another software,
+# that were configured to be available through the CMT.
+#
+#   cmt_find_package(name [major[.minor[.patch[.tweak]]]] [EXACT]
 #               [QUIET] [REQUIRED] [[COMPONENTS] [components...]]
 #               [PATHS path1 [paths...]] )
+#
+# When the 'REQUIRED' argument was set, it will fail with an error
+# if package could not be found
+#
+# When the 'QUIET' argument is set, no status messages will be printed.
+#
+# It searches for the first package with version greater of (if no 'EXACT')
+# or equal to the provided one.  Package version is taken according to CMT
+# (from cmt/version.cmt file).  Search path is defined as (<name>_CMT_DIR,
+# caller hints by 'PATHS', CMT_PREFIX_PATH and "Externals").  If the package
+# is found and its ROOT_DIR is located, the code tries to call a regular
+# find_package() with this ROOT_DIR as a hint.
+#
+# It sets the following variables:
+#   <name>_FOUND        - true if package was found
+#   <name>_VERSION      - package version according to CMT
+#   <name>_ROOT_DIR     - package root directory
+#   <name>_INCLUDE_DIRS - path to search for header files
+#   <name>_DEFINITIONS  - the '-D' preprocessor flags
+#   <name>_CPPFLAGS     - other compiler flags
+#   <name>_LIBRARY_DIRS - path to search for libraries
+#   <name>_LIBRARIES    - full list of liraries from '_linkopts'
+#   <name>_LDFLAGS      - other linker flags
+# All values are derived from CMT variables, no direct interaction with the
+# software is performed.
 
-set(CMT_VERSION 1)
+#=============================================================================
+# Copyright (C) 2018 Vladimir Belov, <belov@itep.ru>
+#
+# Distributed under the OSI-approved BSD 3-Clause License.
+# See https://cmake.org/licensing for details.
+#
+# This software is distributed WITHOUT ANY WARRANTY; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the License for more information.
+#=============================================================================
+
+#set(CMT_VERSION 1)
 set(CMT_PREFIX_PATH "" CACHE PATH "Path to a directory with CMT packages.")
 find_program(CMT_EXECUTABLE NAMES cmt DOC "CMT main executable")
 mark_as_advanced(CMT_EXECUTABLE)
 
+# convert version from CMT style to regular with dots
 function(_cmt_convert_version _name _vers)
   set(out ${_vers})
   string(REPLACE "v" ""  out "${out}")
@@ -33,7 +81,7 @@ include(FindPackageMessage)
 # package loaded
 
 #
-# now -- stuff
+# Now stuff related to packages finding
 #
 
 # List all packages reachable by CMT
@@ -88,7 +136,7 @@ macro(_cmt_check_package NAME VERSION DIR)
   if("${err}" STREQUAL "") # check conf
 
     # get package version
-    # here we assume that CMT 'version' is correct
+    # here we assume that version by CMT is correct
     string(TOUPPER "${NAME}" _name_up)
     execute_process(
       COMMAND ${cmt_wrap} show macro_value ${_name_up}VERSION
@@ -135,7 +183,7 @@ function(CMT_FIND_PACKAGE NAME)
       list(REMOVE_AT ARGN 0)
     endif()
   endif()
-  CMAKE_PARSE_ARGUMENTS(_cfp "${switch_opts}" "${one_val_opts}" "${multi_val_opts}" ${ARGN})
+  cmake_parse_arguments(_cfp "${switch_opts}" "${one_val_opts}" "${multi_val_opts}" ${ARGN})
   if(_cfp_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "Unknown keyword given to CMT_FIND_PACKAGE(): \"${_cfp_UNPARSED_ARGUMENTS}\"")
   endif()
@@ -148,20 +196,20 @@ function(CMT_FIND_PACKAGE NAME)
 
   _cmt_create_wrap()
 
-  if( NOT ${NAME}_CMT_DIR OR 
+  if( NOT ${NAME}_CMT_DIR OR
       NOT EXISTS "${${NAME}_CMT_DIR}/cmt/requirements")
 
     # we don't have cached value, so let's go find something
     set(${NAME}_CMT_DIRS)
     set(${NAME}_CMT_DIR)
-    list(APPEND ${NAME}_CMT_DIRS ${_cmt_args})
+    list(APPEND ${NAME}_CMT_DIRS ${_cfp_PATHS})
     list(APPEND ${NAME}_CMT_DIRS ${CMT_PREFIX_PATH})
     list(APPEND ${NAME}_CMT_DIRS Externals)
     _cmt_list_packages(${NAME})
     list(REMOVE_DUPLICATES ${NAME}_CMT_DIRS)
     foreach(dir ${${NAME}_CMT_DIRS})
       _cmt_check_package(${NAME} * "${dir}")
-      if( "${VERSION}" VERSION_LESS "${${NAME}_VERSION}" AND NOT _cfp_EXACT OR 
+      if( "${VERSION}" VERSION_LESS "${${NAME}_VERSION}" AND NOT _cfp_EXACT OR
           "${VERSION}" VERSION_EQUAL "${${NAME}_VERSION}" OR
           "${VERSION}" STREQUAL "")
         set(${NAME}_CMT_DIR ${${NAME}_ROOT} CACHE PATH "Path to a directory with CMT package of ${NAME}.")
@@ -176,7 +224,7 @@ function(CMT_FIND_PACKAGE NAME)
     # yes, we have it
     unset(${NAME}_FOUND)
     unset(${NAME}_VERSION CACHE)
-    unset(${NAME}_ROOT CACHE)
+    unset(${NAME}_ROOT_DIR CACHE)
     unset(${NAME}_INCLUDE_DIRS CACHE)
     unset(${NAME}_DEFINITIONS CACHE)
     unset(${NAME}_CPPFLAGS CACHE)
@@ -184,12 +232,12 @@ function(CMT_FIND_PACKAGE NAME)
     unset(${NAME}_LIBRARIES CACHE)
     unset(${NAME}_LDFLAGS CACHE)
 
-    set(cmt_dir "CMakeFiles/cmt_test_${NAME}/cmt")
     # Creating new test package
     execute_process(
       COMMAND ${cmt_wrap} create cmt_test_${NAME} v0 CMakeFiles
       RESULT_VARIABLE res OUTPUT_VARIABLE out ERROR_VARIABLE err
       OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(cmt_dir "CMakeFiles/cmt_test_${NAME}/cmt")
     # and adding our dependency to it
     file(APPEND ${PROJECT_BINARY_DIR}/${cmt_dir}/requirements
       "use ${NAME} * ${pkg_dir}\n")
@@ -290,13 +338,13 @@ function(CMT_FIND_PACKAGE NAME)
         get_filename_component(dir ${item} DIRECTORY)
         if(${dir} MATCHES "/(lib|lib64)(/(${NAME}|${_name_low}|${_name_up})(-[0-9.]+)?)?$")
           string(REPLACE ${CMAKE_MATCH_0} "" dir ${dir})
-          set(${NAME}_ROOT ${dir})
+          set(${NAME}_ROOT_DIR ${dir})
           if("${${NAME}_INCLUDE_DIRS}" STREQUAL "")
             # if include_dirs is empty
             list(APPEND ${NAME}_INCLUDE_DIRS ${dir}/include)
           endif()
         else()
-          set(${NAME}_ROOT ${dir})
+          set(${NAME}_ROOT_DIR ${dir})
           if("${${NAME}_INCLUDE_DIRS}" STREQUAL "")
             # if include_dirs is empty
             list(APPEND ${NAME}_INCLUDE_DIRS ${dir})
@@ -308,27 +356,27 @@ function(CMT_FIND_PACKAGE NAME)
       list(REMOVE_DUPLICATES ${NAME}_INCLUDE_DIRS)
     endif()
 
-    if(${NAME}_ROOT)
+    if(${NAME}_ROOT_DIR)
       # maybe package is modern enough
-      find_package(${NAME} QUIET HINTS ${${NAME}_ROOT} NO_DEFAULT_PATH)
+      find_package(${NAME} QUIET HINTS ${${NAME}_ROOT_DIR} NO_DEFAULT_PATH)
       if(${NAME}_FOUND)
         return()
       endif()
     endif()
 
     # this is the end, wrap-up
+    set(${NAME}_FIND_QUIETLY ${_cfp_QUIET})
     find_package_handle_standard_args(${NAME} FOUND_VAR ${NAME}_FOUND REQUIRED_VARS ${NAME}_INCLUDE_DIRS ${NAME}_LIBRARIES VERSION_VAR ${NAME}_VERSION)
     if(${${NAME}_FOUND})
       set(${NAME}_FOUND ${${NAME}_FOUND} PARENT_SCOPE)
       set(${NAME}_VERSION ${${NAME}_VERSION} PARENT_SCOPE)
-      set(${NAME}_ROOT ${${NAME}_ROOT} PARENT_SCOPE)
+      set(${NAME}_ROOT_DIR ${${NAME}_ROOT_DIR} PARENT_SCOPE)
       set(${NAME}_INCLUDE_DIRS ${${NAME}_INCLUDE_DIRS} PARENT_SCOPE)
       set(${NAME}_DEFINITIONS ${${NAME}_DEFINITIONS} PARENT_SCOPE)
       set(${NAME}_CPPFLAGS ${${NAME}_CPPFLAGS} PARENT_SCOPE)
       set(${NAME}_LIBRARY_DIRS ${${NAME}_LIBRARY_DIRS} PARENT_SCOPE)
       set(${NAME}_LIBRARIES ${${NAME}_LIBRARIES} PARENT_SCOPE)
       set(${NAME}_LDFLAGS ${${NAME}_LDFLAGS} PARENT_SCOPE)
-      mark_as_advanced(${NAME}_ROOT ${NAME}_INCLUDE_DIRS)
     endif()
 
   else() # check conf
@@ -373,4 +421,3 @@ endfunction()
 function(_cmt_remove_wrap)
   file(REMOVE ${cmt_wrap})
 endfunction()
-

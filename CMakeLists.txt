@@ -23,7 +23,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # ... and configuration options
 option(DEBUG      "Turn debug options on" OFF)
-set(CMT_CHECK_DIR "Externals" CACHE STRING "Set a path for packages location for CMT" )
+set(CMT_SEARCH_DIRS "Externals" CACHE STRING "Set a path for packages location for CMT" )
 option(USE_SIMPLE_DIRS "Use simplified directory structure" OFF)
 option(BUILD_CMT_PROJECT "Create a project to use sniper in CMT system" ON)
 
@@ -54,7 +54,7 @@ find_package(Boost 1.53 COMPONENTS python)
 if(Boost_FOUND)
   #
 else()
-  CMT_FIND_PACKAGE(Boost 1.53 REQUIRED PATHS ${CMT_CHECK_DIR})
+  cmt_find_package(Boost 1.53 REQUIRED PATHS ${CMT_SEARCH_DIRS})
   if(Boost_FOUND AND NOT Boost_DIR)
     # fix CMT results
     foreach(lib ${Boost_LIBRARIES})
@@ -76,7 +76,7 @@ find_package(PythonLibs 2.7)
 if(PYTHONLIBS_FOUND)
   find_package(PythonInterp ${PYTHONLIBS_VERSION_STRING})
 else()
-  CMT_FIND_PACKAGE(Python 2.7 PATHS ${CMT_CHECK_DIR})
+  cmt_find_package(Python 2.7 PATHS ${CMT_SEARCH_DIRS})
   if(Python_FOUND AND NOT Python_DIR)
     # fix CMT results
     set(PYTHONLIBS_FOUND TRUE)
@@ -111,7 +111,7 @@ if(ROOT_FOUND)
     list(APPEND ROOT_LIBRARY_DIRS ${ROOT_LIBRARY_DIR})
   endif()
 else()
-  CMT_FIND_PACKAGE(ROOT 5.18 PATHS ${CMT_CHECK_DIR})
+  cmt_find_package(ROOT 5.18 PATHS ${CMT_SEARCH_DIRS})
   if(ROOT_FOUND AND NOT ROOT_DIR)
     # fix CMT results
     foreach(lib ${ROOT_LIBRARIES})
@@ -127,7 +127,6 @@ else()
         mark_as_advanced(ROOT_EXECUTABLE)
       endif()
     endforeach()
-    #find_package(ROOT 5.18 PATHS /home/volod/bin/root6)
   endif()
 endif()
 #cmake_print_variables(ROOT_INCLUDE_DIRS ROOT_LIBRARY_DIRS ROOT_Core_LIBRARY ROOT_EXECUTABLE)
@@ -202,10 +201,10 @@ else()
   else()
     if(PYTHON_EXECUTABLE)
       execute_process(
-	COMMAND ${PYTHON_EXECUTABLE} "-c" "import sys; print \"python%d.%d\" % (sys.version_info[0:2]);"
-	OUTPUT_VARIABLE python
-	ERROR_QUIET
-	OUTPUT_STRIP_TRAILING_WHITESPACE)
+        COMMAND ${PYTHON_EXECUTABLE} "-c" "import sys; print \"python%d.%d\" % (sys.version_info[0:2]);"
+        OUTPUT_VARIABLE python
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
     else()
       set(python "python")
     endif()
@@ -258,7 +257,6 @@ if(DEBUG)
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--as-needed -Wl,--no-undefined")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--export-dynamic")
-set(datadir "share/sniper")
 string(TIMESTAMP CONFIG_DATE)
 set(CONFIG_DATE ${CONFIG_DATE} CACHE INTERNAL "Date when build was made")
 set(CONFIG_USER $ENV{USER} CACHE INTERNAL "Name who did the build")

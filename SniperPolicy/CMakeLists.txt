@@ -6,9 +6,6 @@ cmake_minimum_required(VERSION 2.8)
 if(BUILD_CMT_PROJECT)
 #
 # build
-get_target_property(_file SniperKernel LOCATION)
-get_filename_component(_file ${_file} NAME)
-set(SniperKernel_LIB_NAME ${_file} PARENT_SCOPE)
 file(COPY cmt/version.cmt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmt)
 set(req_head "
 package SniperPolicy
